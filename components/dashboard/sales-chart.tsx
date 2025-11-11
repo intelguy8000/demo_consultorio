@@ -32,7 +32,7 @@ export function SalesChart({ data }: SalesChartProps) {
           tick={{ fontSize: 12 }}
           stroke="#666"
           tickFormatter={(value) =>
-            `$${(value / 1000).toFixed(0)}K`
+            `$${(value / 1000000).toFixed(1)}M`
           }
         />
         <Tooltip
@@ -48,9 +48,9 @@ export function SalesChart({ data }: SalesChartProps) {
         <Line
           type="monotone"
           dataKey="amount"
-          stroke="#2563eb"
+          stroke="#14b8a6"
           strokeWidth={2}
-          dot={{ fill: "#2563eb", r: 4 }}
+          dot={{ fill: "#14b8a6", r: 4 }}
           activeDot={{ r: 6 }}
         />
       </LineChart>

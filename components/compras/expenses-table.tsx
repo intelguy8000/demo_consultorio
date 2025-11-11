@@ -8,77 +8,69 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import * as XLSX from "xlsx";
 
-interface Sale {
+interface Expense {
   id: string;
   date: Date;
-  patient: {
-    fullName: string;
-  };
-  treatment: string;
+  category: string;
+  description: string;
   amount: number;
-  paymentMethod: string;
   status: string;
 }
 
-interface SalesTableProps {
-  sales: Sale[];
+interface ExpensesTableProps {
+  expenses: Expense[];
 }
 
-export function SalesTable({ sales }: SalesTableProps) {
+export function ExpensesTable({ expenses }: ExpensesTableProps) {
   const [filters, setFilters] = useState({
     fecha: "",
-    paciente: "",
-    tratamiento: "",
+    categoria: "",
+    descripcion: "",
     monto: "",
-    metodo: "",
     estado: "",
   });
 
-  const filteredSales = useMemo(() => {
-    return sales.filter((sale) => {
-      const fecha = format(new Date(sale.date), "dd MMM yyyy", { locale: es }).toLowerCase();
-      const paciente = sale.patient.fullName.toLowerCase();
-      const tratamiento = sale.treatment.toLowerCase();
-      const monto = sale.amount.toString();
-      const metodo = getPaymentMethodLabel(sale.paymentMethod).toLowerCase();
-      const estado = sale.status.toLowerCase();
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((expense) => {
+      const fecha = format(new Date(expense.date), "dd MMM yyyy", { locale: es }).toLowerCase();
+      const categoria = expense.category.toLowerCase();
+      const descripcion = expense.description.toLowerCase();
+      const monto = expense.amount.toString();
+      const estado = expense.status.toLowerCase();
 
       return (
         fecha.includes(filters.fecha.toLowerCase()) &&
-        paciente.includes(filters.paciente.toLowerCase()) &&
-        tratamiento.includes(filters.tratamiento.toLowerCase()) &&
+        categoria.includes(filters.categoria.toLowerCase()) &&
+        descripcion.includes(filters.descripcion.toLowerCase()) &&
         monto.includes(filters.monto) &&
-        metodo.includes(filters.metodo.toLowerCase()) &&
         estado.includes(filters.estado.toLowerCase())
       );
     });
-  }, [sales, filters]);
+  }, [expenses, filters]);
 
   const exportToExcel = () => {
-    const dataToExport = filteredSales.map((sale) => ({
-      Fecha: format(new Date(sale.date), "dd/MM/yyyy"),
-      Paciente: sale.patient.fullName,
-      Tratamiento: sale.treatment,
-      Monto: sale.amount,
-      "Método de Pago": getPaymentMethodLabel(sale.paymentMethod),
-      Estado: sale.status.charAt(0).toUpperCase() + sale.status.slice(1),
+    const dataToExport = filteredExpenses.map((expense) => ({
+      Fecha: format(new Date(expense.date), "dd/MM/yyyy"),
+      Categoría: expense.category,
+      Descripción: expense.description,
+      Monto: expense.amount,
+      Estado: expense.status.charAt(0).toUpperCase() + expense.status.slice(1),
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Ventas");
-    XLSX.writeFile(wb, `ventas_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Gastos");
+    XLSX.writeFile(wb, `gastos_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
   const exportToCSV = () => {
-    const headers = ["Fecha", "Paciente", "Tratamiento", "Monto", "Método de Pago", "Estado"];
-    const dataToExport = filteredSales.map((sale) => [
-      format(new Date(sale.date), "dd/MM/yyyy"),
-      sale.patient.fullName,
-      sale.treatment,
-      sale.amount,
-      getPaymentMethodLabel(sale.paymentMethod),
-      sale.status.charAt(0).toUpperCase() + sale.status.slice(1),
+    const headers = ["Fecha", "Categoría", "Descripción", "Monto", "Estado"];
+    const dataToExport = filteredExpenses.map((expense) => [
+      format(new Date(expense.date), "dd/MM/yyyy"),
+      expense.category,
+      expense.description,
+      expense.amount,
+      expense.status.charAt(0).toUpperCase() + expense.status.slice(1),
     ]);
 
     const csvContent = [
@@ -90,7 +82,7 @@ export function SalesTable({ sales }: SalesTableProps) {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `ventas_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.setAttribute("download", `gastos_${format(new Date(), "yyyy-MM-dd")}.csv`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -99,9 +91,9 @@ export function SalesTable({ sales }: SalesTableProps) {
 
   const getStatusBadge = (status: string) => {
     const statusStyles = {
-      completada: "bg-green-100 text-green-800",
+      pagado: "bg-green-100 text-green-800",
       pendiente: "bg-yellow-100 text-yellow-800",
-      cancelada: "bg-red-100 text-red-800",
+      vencido: "bg-red-100 text-red-800",
     };
 
     return (
@@ -113,17 +105,6 @@ export function SalesTable({ sales }: SalesTableProps) {
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
-  };
-
-  const getPaymentMethodLabel = (method: string) => {
-    const labels: Record<string, string> = {
-      efectivo: "Efectivo",
-      tarjeta: "Tarjeta",
-      transferencia: "Transferencia",
-      nequi: "Nequi",
-      plan_pagos: "Plan de Pagos",
-    };
-    return labels[method] || method;
   };
 
   return (
@@ -148,16 +129,13 @@ export function SalesTable({ sales }: SalesTableProps) {
                 Fecha
               </th>
               <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                Paciente
+                Categoría
               </th>
               <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                Tratamiento
+                Descripción
               </th>
               <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
                 Monto
-              </th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                Método de Pago
               </th>
               <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
                 Estado
@@ -176,16 +154,16 @@ export function SalesTable({ sales }: SalesTableProps) {
               <th className="py-2 px-4">
                 <Input
                   placeholder="Filtrar..."
-                  value={filters.paciente}
-                  onChange={(e) => setFilters({ ...filters, paciente: e.target.value })}
+                  value={filters.categoria}
+                  onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
                   className="h-8 text-xs"
                 />
               </th>
               <th className="py-2 px-4">
                 <Input
                   placeholder="Filtrar..."
-                  value={filters.tratamiento}
-                  onChange={(e) => setFilters({ ...filters, tratamiento: e.target.value })}
+                  value={filters.descripcion}
+                  onChange={(e) => setFilters({ ...filters, descripcion: e.target.value })}
                   className="h-8 text-xs"
                 />
               </th>
@@ -200,14 +178,6 @@ export function SalesTable({ sales }: SalesTableProps) {
               <th className="py-2 px-4">
                 <Input
                   placeholder="Filtrar..."
-                  value={filters.metodo}
-                  onChange={(e) => setFilters({ ...filters, metodo: e.target.value })}
-                  className="h-8 text-xs"
-                />
-              </th>
-              <th className="py-2 px-4">
-                <Input
-                  placeholder="Filtrar..."
                   value={filters.estado}
                   onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
                   className="h-8 text-xs"
@@ -216,33 +186,30 @@ export function SalesTable({ sales }: SalesTableProps) {
             </tr>
           </thead>
           <tbody>
-            {filteredSales.map((sale) => (
-              <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50">
+            {filteredExpenses.map((expense) => (
+              <tr key={expense.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 px-4 text-sm text-gray-900">
-                  {format(new Date(sale.date), "dd MMM yyyy", { locale: es })}
+                  {format(new Date(expense.date), "dd MMM yyyy", { locale: es })}
                 </td>
-                <td className="py-3 px-4 text-sm text-gray-900">
-                  {sale.patient.fullName}
-                </td>
-                <td className="py-3 px-4 text-sm text-gray-900">
-                  {sale.treatment}
-                </td>
-                <td className="py-3 px-4 text-sm text-gray-900 text-right font-medium">
-                  ${sale.amount.toLocaleString("es-CO")}
+                <td className="py-3 px-4 text-sm text-gray-900 font-medium">
+                  {expense.category}
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-600">
-                  {getPaymentMethodLabel(sale.paymentMethod)}
+                  {expense.description}
+                </td>
+                <td className="py-3 px-4 text-sm text-gray-900 text-right font-semibold">
+                  ${expense.amount.toLocaleString("es-CO")}
                 </td>
                 <td className="py-3 px-4 text-center">
-                  {getStatusBadge(sale.status)}
+                  {getStatusBadge(expense.status)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filteredSales.length === 0 && (
+        {filteredExpenses.length === 0 && (
           <div className="text-center py-12 text-gray-500">
-            {sales.length === 0 ? "No hay ventas registradas" : "No se encontraron resultados con los filtros aplicados"}
+            {expenses.length === 0 ? "No hay gastos registrados" : "No se encontraron resultados con los filtros aplicados"}
           </div>
         )}
       </div>

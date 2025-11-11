@@ -38,7 +38,7 @@ export function TopTreatmentsChart({ data }: TopTreatmentsChartProps) {
             borderRadius: "4px",
           }}
         />
-        <Bar dataKey="count" fill="#2563eb" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

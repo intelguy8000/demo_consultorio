@@ -23,6 +23,15 @@ export function InventoryTable({ items }: InventoryTableProps) {
     valorTotal: "",
   });
 
+  const getStatusLabel = (status: string) => {
+    const statusConfig = {
+      ok: "OK",
+      low: "Bajo",
+      critical: "Crítico",
+    };
+    return statusConfig[status as keyof typeof statusConfig] || status;
+  };
+
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const codigo = item.code.slice(0, 8).toLowerCase();
@@ -88,15 +97,6 @@ export function InventoryTable({ items }: InventoryTableProps) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusConfig = {
-      ok: "OK",
-      low: "Bajo",
-      critical: "Crítico",
-    };
-    return statusConfig[status as keyof typeof statusConfig] || status;
   };
 
   const getStatusBadge = (status: string) => {

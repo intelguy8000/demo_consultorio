@@ -44,38 +44,56 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 1rem; /* Más redondeado para calidez */
+
+  /* Fondo cálido inspirado en CR Dental Studio */
+  --background: oklch(0.985 0.01 30); /* #fef3f2 - Warm background */
+  --foreground: oklch(0.25 0.02 30);
+
+  /* Cards flotantes con fondo blanco */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.25 0.02 30);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.25 0.02 30);
+
+  /* Teal primary - Color principal de la marca */
+  --primary: oklch(0.62 0.17 215); /* #0693e3 - Teal */
+  --primary-foreground: oklch(1 0 0);
+
+  /* Coral secondary - Color cálido de acento */
+  --secondary: oklch(0.68 0.19 45); /* #ff6900 - Coral/Orange */
+  --secondary-foreground: oklch(1 0 0);
+
+  --muted: oklch(0.96 0.01 30);
+  --muted-foreground: oklch(0.5 0.02 30);
+
+  /* Purple accent - Color terciario de la marca */
+  --accent: oklch(0.58 0.21 300); /* #9b51e0 - Purple */
+  --accent-foreground: oklch(1 0 0);
+
+  --destructive: oklch(0.58 0.23 25); /* Red para acciones destructivas */
+
+  --border: oklch(0.93 0.01 30);
+  --input: oklch(0.96 0.01 30);
+  --ring: oklch(0.62 0.17 215); /* Teal ring */
+
+  /* Charts con colores de la marca */
+  --chart-1: oklch(0.62 0.17 215); /* Teal */
+  --chart-2: oklch(0.68 0.19 45); /* Coral */
+  --chart-3: oklch(0.58 0.21 300); /* Purple */
+  --chart-4: oklch(0.75 0.15 150); /* Complementario */
+  --chart-5: oklch(0.55 0.18 330); /* Magenta */
+
+  /* Sidebar con fondo cálido */
+  --sidebar: oklch(0.98 0.01 30);
+  --sidebar-foreground: oklch(0.25 0.02 30);
+  --sidebar-primary: oklch(0.62 0.17 215); /* Teal */
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.01 30);
+  --sidebar-accent-foreground: oklch(0.25 0.02 30);
+  --sidebar-border: oklch(0.92 0.01 30);
+  --sidebar-ring: oklch(0.62 0.17 215);
 }
 
 .dark {
@@ -118,5 +136,55 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Estilos personalizados para Propuesta 3: Calidez Minimalista */
+@layer utilities {
+  /* Cards flotantes con sombras profundas */
+  .card-floating {
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.05),
+      0 10px 15px -3px rgb(0 0 0 / 0.05),
+      0 20px 25px -5px rgb(0 0 0 / 0.04);
+  }
+
+  .card-floating:hover {
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.07),
+      0 20px 25px -5px rgb(0 0 0 / 0.06),
+      0 25px 30px -8px rgb(0 0 0 / 0.05);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+
+  /* Elementos muy redondeados */
+  .rounded-2xl-custom {
+    border-radius: 1.5rem;
+  }
+
+  /* Gradiente cálido de fondo */
+  .bg-warm-gradient {
+    background: linear-gradient(135deg,
+      oklch(0.99 0.01 30) 0%,
+      oklch(0.985 0.015 35) 50%,
+      oklch(0.99 0.01 25) 100%
+    );
+  }
+
+  /* Gradiente de la marca para elementos destacados */
+  .bg-brand-gradient {
+    background: linear-gradient(135deg,
+      oklch(0.62 0.17 215) 0%,  /* Teal */
+      oklch(0.58 0.21 300) 100%  /* Purple */
+    );
+  }
+
+  /* Gradiente cálido para elementos secundarios */
+  .bg-warm-accent-gradient {
+    background: linear-gradient(135deg,
+      oklch(0.68 0.19 45) 0%,   /* Coral */
+      oklch(0.72 0.17 35) 100%  /* Light Orange */
+    );
   }
 }

@@ -8,11 +8,17 @@ async function main() {
   console.log("🌱 Starting seed...");
 
   // Limpiar datos existentes (en orden correcto por relaciones)
+  await prisma.paymentInstallment.deleteMany();
+  await prisma.paymentPlan.deleteMany();
   await prisma.inventoryMovement.deleteMany();
   await prisma.saleInventoryItem.deleteMany();
+  await prisma.purchaseItem.deleteMany();
+  await prisma.purchase.deleteMany();
+  await prisma.expense.deleteMany();
   await prisma.sale.deleteMany();
   await prisma.patient.deleteMany();
   await prisma.inventoryItem.deleteMany();
+  await prisma.supplier.deleteMany();
   await prisma.integration.deleteMany();
   await prisma.user.deleteMany();
   await prisma.config.deleteMany();
@@ -293,6 +299,388 @@ async function main() {
   }
 
   console.log(`✅ ${sales.length} ventas creadas`);
+
+  // Crear planes de pago de ejemplo
+  const paymentPlansData = [
+    {
+      patient: patients[0],
+      treatment: "Ortodoncia Completa",
+      totalAmount: 3000000,
+      downPayment: 0,
+      installments: 6,
+      installmentAmount: 500000,
+      startDate: new Date(),
+    },
+    {
+      patient: patients[1],
+      treatment: "Implante Dental + Corona",
+      totalAmount: 2500000,
+      downPayment: 500000,
+      installments: 4,
+      installmentAmount: 500000,
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Started 30 days ago
+    },
+    {
+      patient: patients[2],
+      treatment: "Blanqueamiento + Carillas",
+      totalAmount: 1800000,
+      downPayment: 300000,
+      installments: 3,
+      installmentAmount: 500000,
+      startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // Started 60 days ago
+    },
+  ];
+
+  const paymentPlans = [];
+  for (let i = 0; i < paymentPlansData.length; i++) {
+    const planData = paymentPlansData[i];
+
+    // Crear la venta asociada al plan de pago
+    const sale = await prisma.sale.create({
+      data: {
+        date: planData.startDate,
+        patientId: planData.patient.id,
+        treatment: planData.treatment,
+        amount: planData.totalAmount,
+        paymentMethod: "plan_pagos",
+        status: "pendiente",
+      },
+    });
+
+    // Calcular remaining amount
+    const remainingAmount = planData.totalAmount - planData.downPayment;
+
+    // Determinar próxima fecha de pago
+    const today = new Date();
+    let nextDueDate = new Date(planData.startDate);
+    nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+
+    // Crear el plan de pago
+    const paymentPlan = await prisma.paymentPlan.create({
+      data: {
+        patientId: planData.patient.id,
+        treatment: planData.treatment,
+        saleId: sale.id,
+        totalAmount: planData.totalAmount,
+        downPayment: planData.downPayment,
+        installments: planData.installments,
+        installmentAmount: planData.installmentAmount,
+        paidAmount: planData.downPayment,
+        remainingAmount: remainingAmount,
+        frequency: "mensual",
+        status: "active",
+        startDate: planData.startDate,
+        nextDueDate: nextDueDate,
+        createdBy: admin.id,
+      },
+    });
+
+    // Crear las cuotas
+    for (let j = 0; j < planData.installments; j++) {
+      const dueDate = new Date(planData.startDate);
+      dueDate.setMonth(dueDate.getMonth() + j + 1);
+
+      // Para el segundo plan (índice 1), marcar primera cuota como pagada
+      // Para el tercer plan (índice 2), marcar primeras dos cuotas como pagadas
+      let installmentStatus = "pending";
+      let paidDate = null;
+      let paymentMethod = null;
+
+      if (i === 1 && j === 0) {
+        installmentStatus = "paid";
+        paidDate = new Date(planData.startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+        paymentMethod = "transferencia";
+      } else if (i === 2 && j < 2) {
+        installmentStatus = "paid";
+        paidDate = new Date(planData.startDate.getTime() + (j + 1) * 30 * 24 * 60 * 60 * 1000);
+        paymentMethod = j === 0 ? "efectivo" : "tarjeta";
+      } else if (dueDate < today) {
+        installmentStatus = "overdue";
+      }
+
+      await prisma.paymentInstallment.create({
+        data: {
+          paymentPlanId: paymentPlan.id,
+          installmentNumber: j + 1,
+          amount: planData.installmentAmount,
+          dueDate: dueDate,
+          paidDate: paidDate,
+          paidAmount: installmentStatus === "paid" ? planData.installmentAmount : null,
+          status: installmentStatus,
+          paymentMethod: paymentMethod,
+        },
+      });
+
+      // Actualizar paidAmount y remainingAmount si la cuota está pagada
+      if (installmentStatus === "paid") {
+        await prisma.paymentPlan.update({
+          where: { id: paymentPlan.id },
+          data: {
+            paidAmount: { increment: planData.installmentAmount },
+            remainingAmount: { decrement: planData.installmentAmount },
+          },
+        });
+      }
+    }
+
+    // Actualizar nextDueDate al próximo pago pendiente
+    const nextPendingInstallment = await prisma.paymentInstallment.findFirst({
+      where: {
+        paymentPlanId: paymentPlan.id,
+        status: { in: ["pending", "overdue"] },
+      },
+      orderBy: { dueDate: "asc" },
+    });
+
+    if (nextPendingInstallment) {
+      await prisma.paymentPlan.update({
+        where: { id: paymentPlan.id },
+        data: { nextDueDate: nextPendingInstallment.dueDate },
+      });
+    }
+
+    paymentPlans.push(paymentPlan);
+  }
+
+  console.log(`✅ ${paymentPlans.length} planes de pago creados`);
+
+  // Crear proveedores
+  const suppliersData = [
+    { name: "Dental Supply Colombia", phone: "+57 (4) 555-1234", email: "ventas@dentalsupply.com" },
+    { name: "Insumos Odontológicos S.A.", phone: "+57 (4) 555-2345", email: "pedidos@insumosdental.com" },
+    { name: "Distribuidora Médica Del Valle", phone: "+57 (2) 555-3456", email: "info@medivalle.com" },
+    { name: "Equipos Dentales Ltda", phone: "+57 (1) 555-4567", email: "contacto@equiposdental.com" },
+    { name: "Suministros Odonto Plus", phone: "+57 (4) 555-5678", email: "ventas@odontoplus.com" },
+  ];
+
+  const suppliers = [];
+  for (const supplierData of suppliersData) {
+    const supplier = await prisma.supplier.create({ data: supplierData });
+    suppliers.push(supplier);
+  }
+
+  console.log(`✅ ${suppliers.length} proveedores creados`);
+
+  // Crear compras del último mes
+  const purchasesData = [
+    {
+      supplier: suppliers[0],
+      invoiceNumber: "FC-2024-001",
+      category: "Material Restaurador",
+      date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Resina Composite A2", quantity: 20, unit: "unidad", unitPrice: 75000 },
+        { productName: "Resina Composite A3", quantity: 15, unit: "unidad", unitPrice: 75000 },
+      ],
+    },
+    {
+      supplier: suppliers[1],
+      invoiceNumber: "FC-2024-002",
+      category: "Anestesia",
+      date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Lidocaína 2% con Epinefrina", quantity: 100, unit: "carpule", unitPrice: 2200 },
+        { productName: "Articaína 4%", quantity: 50, unit: "carpule", unitPrice: 3200 },
+      ],
+    },
+    {
+      supplier: suppliers[0],
+      invoiceNumber: "FC-2024-003",
+      category: "Bioseguridad",
+      date: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Guantes de Nitrilo Talla M", quantity: 500, unit: "par", unitPrice: 700 },
+        { productName: "Mascarillas Quirúrgicas", quantity: 500, unit: "unidad", unitPrice: 450 },
+      ],
+    },
+    {
+      supplier: suppliers[2],
+      invoiceNumber: "FC-2024-004",
+      category: "Instrumental Rotatorio",
+      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Fresas Carburo #330", quantity: 30, unit: "unidad", unitPrice: 7500 },
+        { productName: "Fresas Diamante Redonda", quantity: 25, unit: "unidad", unitPrice: 11000 },
+      ],
+    },
+    {
+      supplier: suppliers[1],
+      invoiceNumber: "FC-2024-005",
+      category: "Medicamentos",
+      date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Amoxicilina 500mg", quantity: 100, unit: "cápsula", unitPrice: 700 },
+        { productName: "Ibuprofeno 400mg", quantity: 100, unit: "tableta", unitPrice: 350 },
+      ],
+    },
+    {
+      supplier: suppliers[3],
+      invoiceNumber: "FC-2024-006",
+      category: "Endodoncia",
+      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Limas K-File #15", quantity: 20, unit: "unidad", unitPrice: 14000 },
+        { productName: "Limas K-File #20", quantity: 20, unit: "unidad", unitPrice: 14000 },
+        { productName: "Gutapercha #25", quantity: 15, unit: "unidad", unitPrice: 17000 },
+      ],
+    },
+    {
+      supplier: suppliers[4],
+      invoiceNumber: "FC-2024-007",
+      category: "Estética",
+      date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Gel Blanqueador 35%", quantity: 10, unit: "jeringa", unitPrice: 70000 },
+        { productName: "Gel Blanqueador 16%", quantity: 10, unit: "jeringa", unitPrice: 52000 },
+      ],
+    },
+    {
+      supplier: suppliers[2],
+      invoiceNumber: "FC-2024-008",
+      category: "Radiología",
+      date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Película Radiográfica Periapical", quantity: 200, unit: "unidad", unitPrice: 2600 },
+      ],
+    },
+    {
+      supplier: suppliers[0],
+      invoiceNumber: "FC-2024-009",
+      category: "Material Consumible",
+      date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Rollos de Algodón", quantity: 30, unit: "paquete", unitPrice: 11000 },
+        { productName: "Gasas Estériles", quantity: 20, unit: "paquete", unitPrice: 8000 },
+      ],
+    },
+    {
+      supplier: suppliers[1],
+      invoiceNumber: "FC-2024-010",
+      category: "Profilaxis",
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      items: [
+        { productName: "Copas de Profilaxis", quantity: 100, unit: "unidad", unitPrice: 1100 },
+        { productName: "Pasta Profiláctica Fresa", quantity: 10, unit: "tarro", unitPrice: 26000 },
+      ],
+    },
+  ];
+
+  const purchases = [];
+  for (const purchaseData of purchasesData) {
+    const totalAmount = purchaseData.items.reduce(
+      (sum, item) => sum + item.quantity * item.unitPrice,
+      0
+    );
+
+    const purchase = await prisma.purchase.create({
+      data: {
+        date: purchaseData.date,
+        supplierId: purchaseData.supplier.id,
+        invoiceNumber: purchaseData.invoiceNumber,
+        category: purchaseData.category,
+        totalAmount: totalAmount,
+        createdBy: admin.id,
+      },
+    });
+
+    for (const item of purchaseData.items) {
+      await prisma.purchaseItem.create({
+        data: {
+          purchaseId: purchase.id,
+          productName: item.productName,
+          quantity: item.quantity,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+          total: item.quantity * item.unitPrice,
+        },
+      });
+    }
+
+    purchases.push(purchase);
+  }
+
+  console.log(`✅ ${purchases.length} compras creadas`);
+
+  // Crear gastos mensuales
+  const expensesData = [
+    {
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      category: "Nómina",
+      description: "Nómina mensual personal consultorio",
+      amount: 8000000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      category: "Arriendo",
+      description: "Arriendo local consultorio",
+      amount: 2500000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      category: "Servicios Públicos",
+      description: "Energía, agua, internet",
+      amount: 450000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+      category: "Aseo y Mantenimiento",
+      description: "Servicio de aseo y mantenimiento del consultorio",
+      amount: 300000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+      category: "Marketing y Publicidad",
+      description: "Campaña digital redes sociales",
+      amount: 800000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      category: "Impuestos y Contribuciones",
+      description: "ICA y contribuciones",
+      amount: 500000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      category: "Seguros",
+      description: "Seguro de responsabilidad civil profesional",
+      amount: 350000,
+      frequency: "mensual",
+      status: "pagado",
+    },
+    {
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      category: "Otros",
+      description: "Gastos varios y misceláneos",
+      amount: 200000,
+      frequency: "unico",
+      status: "pagado",
+    },
+  ];
+
+  const expenses = [];
+  for (const expenseData of expensesData) {
+    const expense = await prisma.expense.create({
+      data: {
+        ...expenseData,
+        createdBy: admin.id,
+      },
+    });
+    expenses.push(expense);
+  }
+
+  console.log(`✅ ${expenses.length} gastos creados`);
 
   console.log("\n🎉 Seed completado exitosamente!");
   console.log("\n📝 Credenciales de acceso:");

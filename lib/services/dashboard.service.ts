@@ -39,6 +39,18 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     _count: true,
   });
 
+  // Gastos del mes actual
+  const expensesThisMonth = await prisma.expense.aggregate({
+    where: {
+      date: {
+        gte: firstDayOfMonth,
+      },
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
   // Clientes activos (pacientes con ventas en los últimos 90 días)
   const activeClientsCount = await prisma.patient.count({
     where: {
@@ -52,11 +64,14 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     },
   });
 
+  const revenue = salesThisMonth._sum.amount || 0;
+  const expenses = expensesThisMonth._sum.amount || 0;
+
   return {
-    salesMonth: salesThisMonth._sum.amount || 0,
+    salesMonth: revenue,
     salesCount: salesThisMonth._count || 0,
-    expenses: 0, // Por ahora en 0, se implementará con módulo de compras
-    profit: salesThisMonth._sum.amount || 0,
+    expenses,
+    profit: revenue - expenses,
     activeClients: activeClientsCount,
   };
 }

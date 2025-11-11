@@ -13,6 +13,10 @@ export interface CreateSaleData {
     inventoryId: string;
     quantityUsed: number;
   }>;
+  paymentPlan?: {
+    downPayment: number;
+    installments: number;
+  };
 }
 
 export async function createSale(data: CreateSaleData) {
@@ -65,6 +69,51 @@ export async function createSale(data: CreateSaleData) {
       }
     }
 
+    // 3. Si hay plan de pago, crearlo
+    if (data.paymentPlan) {
+      const amountToFinance = data.amount - data.paymentPlan.downPayment;
+      const installmentAmount = Math.round(
+        amountToFinance / data.paymentPlan.installments
+      );
+
+      const firstDueDate = new Date(data.date);
+      firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+
+      const paymentPlan = await tx.paymentPlan.create({
+        data: {
+          patientId: data.patientId,
+          treatment: data.treatment,
+          saleId: sale.id,
+          totalAmount: data.amount,
+          downPayment: data.paymentPlan.downPayment,
+          installments: data.paymentPlan.installments,
+          installmentAmount: installmentAmount,
+          paidAmount: data.paymentPlan.downPayment,
+          remainingAmount: amountToFinance,
+          frequency: "mensual",
+          status: "active",
+          startDate: data.date,
+          nextDueDate: firstDueDate,
+        },
+      });
+
+      // Crear las cuotas
+      for (let i = 0; i < data.paymentPlan.installments; i++) {
+        const dueDate = new Date(data.date);
+        dueDate.setMonth(dueDate.getMonth() + i + 1);
+
+        await tx.paymentInstallment.create({
+          data: {
+            paymentPlanId: paymentPlan.id,
+            installmentNumber: i + 1,
+            amount: installmentAmount,
+            dueDate: dueDate,
+            status: "pending",
+          },
+        });
+      }
+    }
+
     // Retornar la venta con sus relaciones
     return await tx.sale.findUnique({
       where: { id: sale.id },
@@ -73,6 +122,11 @@ export async function createSale(data: CreateSaleData) {
         itemsUsed: {
           include: {
             inventory: true,
+          },
+        },
+        paymentPlan: {
+          include: {
+            paymentInstallments: true,
           },
         },
       },

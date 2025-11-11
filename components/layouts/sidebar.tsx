@@ -12,11 +12,13 @@ import {
   Plug,
   UserCog,
   Settings,
+  Receipt,
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: ShoppingCart, label: "Ventas", href: "/ventas" },
+  { icon: Receipt, label: "Cuentas por Cobrar", href: "/cuentas-por-cobrar" },
   { icon: ShoppingBag, label: "Compras & Gastos", href: "/compras" },
   { icon: Package, label: "Inventario", href: "/inventario" },
   { icon: Users, label: "Clientes", href: "/clientes" },

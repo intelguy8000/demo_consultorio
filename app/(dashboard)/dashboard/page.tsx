@@ -1,15 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, ShoppingCart, Users, AlertTriangle } from "lucide-react";
+import { DollarSign, TrendingUp, ShoppingCart, Users, AlertTriangle, Receipt, AlertCircle, Calendar, Plug } from "lucide-react";
 import { getDashboardKPIs, getSalesLast7Days, getTopTreatments } from "@/lib/services/dashboard.service";
 import { getInventoryAlerts } from "@/lib/services/inventario.service";
+import { getAccountsReceivableKPIs } from "@/lib/services/payment-plans.service";
+import { getIntegrations } from "@/lib/services/integraciones.service";
 import { SalesChart } from "@/components/dashboard/sales-chart";
 import { TopTreatmentsChart } from "@/components/dashboard/top-treatments-chart";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
   const kpisData = await getDashboardKPIs();
   const salesData = await getSalesLast7Days();
   const topTreatments = await getTopTreatments(5);
   const inventoryAlerts = await getInventoryAlerts();
+  const accountsReceivableKPIs = await getAccountsReceivableKPIs();
+  const integrations = await getIntegrations();
+  const errorIntegrations = integrations.filter((i) => i.status === "error");
 
   const kpis = [
     {
@@ -132,6 +139,118 @@ export default async function DashboardPage() {
                   >
                     {item.status === "critical" ? "Crítico" : "Bajo"}
                   </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Accounts Receivable Section */}
+      {accountsReceivableKPIs.activePlansCount > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-blue-900">Cuentas por Cobrar</CardTitle>
+              </div>
+              <Link href="/cuentas-por-cobrar">
+                <Button variant="outline" size="sm">
+                  Ver Todos
+                </Button>
+              </Link>
+            </div>
+            <CardDescription className="text-blue-700">
+              {accountsReceivableKPIs.activePlansCount} planes de pago activos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Total por Cobrar */}
+              <div className="p-4 bg-white rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <p className="text-sm font-medium text-gray-600">Total por Cobrar</p>
+                </div>
+                <p className="text-2xl font-bold text-blue-900">
+                  ${accountsReceivableKPIs.totalReceivable.toLocaleString("es-CO")}
+                </p>
+              </div>
+
+              {/* Cuotas Vencidas */}
+              {accountsReceivableKPIs.overdueCount > 0 && (
+                <div className="p-4 bg-white rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <p className="text-sm font-medium text-gray-600">Cuotas Vencidas</p>
+                  </div>
+                  <p className="text-2xl font-bold text-red-600">
+                    ${accountsReceivableKPIs.overdueAmount.toLocaleString("es-CO")}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {accountsReceivableKPIs.overdueCount} cuotas vencidas
+                  </p>
+                </div>
+              )}
+
+              {/* Vence Esta Semana */}
+              {accountsReceivableKPIs.dueThisWeekCount > 0 && (
+                <div className="p-4 bg-white rounded-lg border border-orange-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4 text-orange-600" />
+                    <p className="text-sm font-medium text-gray-600">Vence Esta Semana</p>
+                  </div>
+                  <p className="text-2xl font-bold text-orange-600">
+                    ${accountsReceivableKPIs.dueThisWeekAmount.toLocaleString("es-CO")}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {accountsReceivableKPIs.dueThisWeekCount} cuotas próximas
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Integration Errors */}
+      {errorIntegrations.length > 0 && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Plug className="h-5 w-5 text-red-600" />
+                <CardTitle className="text-red-900">Alertas de Integraciones</CardTitle>
+              </div>
+              <Link href="/integraciones">
+                <Button variant="outline" size="sm">
+                  Ver Integraciones
+                </Button>
+              </Link>
+            </div>
+            <CardDescription className="text-red-700">
+              {errorIntegrations.length} integraciones con errores
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {errorIntegrations.map((integration) => (
+                <div
+                  key={integration.id}
+                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{integration.name}</p>
+                    <p className="text-sm text-red-600">
+                      {integration.lastError || "Error de conexión"}
+                    </p>
+                  </div>
+                  <Link href="/integraciones">
+                    <Button variant="outline" size="sm">
+                      Revisar
+                    </Button>
+                  </Link>
                 </div>
               ))}
             </div>

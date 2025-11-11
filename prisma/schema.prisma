@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model User {
@@ -34,24 +35,53 @@ model Config {
 }
 
 model Integration {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   name      String
-  type      String   // alegra, openai, etc
-  status    String   @default("inactive") // active, inactive
+  type      String           // alegra, openai, etc
+  status    String           @default("inactive") // active, inactive, error
   lastSync  DateTime?
+  lastError String?
+  logs      IntegrationLog[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model IntegrationLog {
+  id             String      @id @default(cuid())
+  integrationId  String
+  integration    Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  action         String      // import, export, sync, test
+  status         String      // success, error, warning
+  message        String
+  recordsAffected Int?
+  details        String?
+  createdAt      DateTime    @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // create, update, delete, login, etc
+  module    String   // ventas, inventario, etc
+  recordId  String?
+  details   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Patient {
-  id       String @id @default(cuid())
-  document String @unique
-  fullName String
-  phone    String
-  email    String?
-  sales    Sale[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  document     String        @unique
+  fullName     String
+  birthDate    DateTime?
+  phone        String
+  email        String?
+  address      String?
+  eps          String?
+  notes        String?
+  sales        Sale[]
+  paymentPlans PaymentPlan[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Sale {
@@ -64,8 +94,49 @@ model Sale {
   paymentMethod String
   status        String
   itemsUsed     SaleInventoryItem[]
+  paymentPlan   PaymentPlan?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model PaymentPlan {
+  id                   String               @id @default(cuid())
+  patientId            String
+  patient              Patient              @relation(fields: [patientId], references: [id])
+  saleId               String?              @unique
+  sale                 Sale?                @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  treatment            String
+  totalAmount          Float
+  downPayment          Float                @default(0)
+  installments         Int
+  installmentAmount    Float
+  paidAmount           Float                @default(0)
+  remainingAmount      Float
+  frequency            String               @default("mensual") // mensual, quincenal, semanal
+  status               String               @default("active") // active, completed, defaulted
+  startDate            DateTime
+  nextDueDate          DateTime
+  createdBy            String?
+  paymentInstallments  PaymentInstallment[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+}
+
+model PaymentInstallment {
+  id                String      @id @default(cuid())
+  paymentPlanId     String
+  paymentPlan       PaymentPlan @relation(fields: [paymentPlanId], references: [id], onDelete: Cascade)
+  installmentNumber Int
+  amount            Float
+  dueDate           DateTime
+  paidDate          DateTime?
+  paidAmount        Float?
+  status            String      @default("pending") // pending, paid, overdue
+  paymentMethod     String?
+  saleId            String?
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model SaleInventoryItem {
@@ -78,18 +149,21 @@ model SaleInventoryItem {
 }
 
 model InventoryItem {
-  id           String   @id @default(cuid())
-  code         String   @unique @default(cuid())
-  name         String
-  category     String
-  currentStock Int      @default(0)
-  minStock     Int
-  unit         String
-  avgCost      Float
-  salesUsed    SaleInventoryItem[]
-  movements    InventoryMovement[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String              @id @default(cuid())
+  code          String              @unique @default(cuid())
+  name          String
+  category      String
+  currentStock  Int                 @default(0)
+  minStock      Int
+  unit          String
+  avgCost       Float
+  supplierId    String?
+  supplier      Supplier?           @relation(fields: [supplierId], references: [id])
+  salesUsed     SaleInventoryItem[]
+  movements     InventoryMovement[]
+  purchaseItems PurchaseItem[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model InventoryMovement {
@@ -101,4 +175,56 @@ model InventoryMovement {
   reason      String
   referenceId String?
   date        DateTime      @default(now())
+}
+
+model Supplier {
+  id             String          @id @default(cuid())
+  name           String
+  phone          String?
+  email          String?
+  purchases      Purchase[]
+  inventoryItems InventoryItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Purchase {
+  id            String         @id @default(cuid())
+  date          DateTime
+  supplierId    String
+  supplier      Supplier       @relation(fields: [supplierId], references: [id])
+  invoiceNumber String
+  category      String
+  totalAmount   Float
+  invoicePath   String?
+  createdBy     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  items         PurchaseItem[]
+}
+
+model PurchaseItem {
+  id          String         @id @default(cuid())
+  purchaseId  String
+  purchase    Purchase       @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productName String
+  quantity    Int
+  unit        String
+  unitPrice   Float
+  total       Float
+  inventoryId String?
+  inventory   InventoryItem? @relation(fields: [inventoryId], references: [id])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  date        DateTime
+  category    String
+  description String
+  amount      Float
+  frequency   String   // unico, mensual, anual
+  status      String   // pagado, pendiente, vencido
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

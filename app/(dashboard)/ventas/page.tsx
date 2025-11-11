@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { getSales } from "@/lib/services/ventas.service";
 import { SalesTable } from "@/components/ventas/sales-table";
+import { ImportAlegraButton } from "@/components/ventas/import-alegra-button";
 
 export default async function VentasPage() {
   const sales = await getSales();
@@ -26,12 +27,15 @@ export default async function VentasPage() {
             Gestiona todas las ventas y tratamientos realizados
           </p>
         </div>
-        <Link href="/ventas/nueva">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva Venta
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <ImportAlegraButton />
+          <Link href="/ventas/nueva">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Venta
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

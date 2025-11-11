@@ -1,0 +1,34 @@
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Database
+dev.db
+dev.db-journal
+*.db
+*.db-journal
+
+# Dependencies
+node_modules
+
+# Build output
+.next
+out
+dist
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+.vscode
+.idea

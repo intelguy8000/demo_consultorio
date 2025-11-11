@@ -8,17 +8,35 @@ Sistema de gestión integral para el consultorio odontológico CR Dental Studio 
 - **Lenguaje**: TypeScript
 - **Estilos**: Tailwind CSS
 - **UI Components**: shadcn/ui
-- **Base de Datos**: SQLite con Prisma ORM
+- **Base de Datos**: PostgreSQL (Vercel Postgres) con Prisma ORM
 - **Autenticación**: NextAuth.js v5
 - **Formularios**: React Hook Form + Zod
 
 ## 📋 Características
 
-- ✅ Sistema de autenticación con roles (admin, asistente, readonly)
-- ✅ Dashboard con vista general del consultorio
-- ✅ Sidebar de navegación con múltiples módulos
-- ✅ Header con perfil de usuario y menú desplegable
-- 🔄 Módulos en desarrollo: Ventas, Compras, Inventario, Clientes, P&G, Integraciones, Usuarios, Configuración
+### ✅ Módulos Completos
+
+- **Dashboard** - KPIs, gráficos de ventas, alertas de inventario y cuentas por cobrar
+- **Ventas** - Gestión de tratamientos, facturación y planes de pago
+- **Inventario** - Control de stock con alertas automáticas
+- **Compras & Gastos** - Registro de compras con actualización automática de inventario
+- **P&G** - Estado de resultados con márgenes y gráficos
+- **Clientes** - Base de datos de pacientes (en progreso)
+- **Cuentas por Cobrar** - Planes de pago con cuotas y seguimiento
+- **Integraciones** - Gestión de conexiones externas (Alegra, OpenAI)
+- **Usuarios** - CRUD de usuarios con sistema de permisos
+- **Chat AI** - Asistente flotante con respuestas contextuales
+
+### 🎯 Funcionalidades
+
+- Sistema de autenticación con 3 roles (admin, asistente, readonly)
+- Planes de pago flexibles (mensual, quincenal, semanal)
+- Importación de facturas desde Alegra (mock)
+- Cálculo automático de costos directos e indirectos
+- Alertas de inventario bajo y crítico
+- Dashboard con métricas en tiempo real
+- Sistema de transacciones para integridad de datos
+- Logs de auditoría para integraciones
 
 ## 🛠️ Setup del Proyecto
 
@@ -129,16 +147,25 @@ npm run lint     # Ejecutar linter
 npm run seed     # Ejecutar seed de base de datos
 ```
 
-## 📝 Próximos Pasos
+## 🚀 Despliegue en Vercel
 
-- [ ] Implementar módulo de Ventas
-- [ ] Implementar módulo de Compras & Gastos
-- [ ] Implementar módulo de Inventario
-- [ ] Implementar módulo de Clientes
-- [ ] Implementar módulo de P&G (Pérdidas y Ganancias)
-- [ ] Configurar integraciones (Alegra, OpenAI)
-- [ ] Implementar gestión de usuarios
-- [ ] Implementar configuración del consultorio
+Para desplegar este proyecto en Vercel con PostgreSQL, sigue la guía detallada en **[DEPLOY.md](./DEPLOY.md)**
+
+**Pasos rápidos:**
+1. Instalar Vercel CLI: `npm i -g vercel`
+2. Login: `vercel login`
+3. Crear DB: `vercel postgres create`
+4. Deploy: `vercel --prod`
+
+## 📝 Próximos Pasos (Opcionales)
+
+- [ ] Completar módulo de Clientes con detalle
+- [ ] Módulo de Agenda y Citas
+- [ ] Integración real con Alegra API
+- [ ] Integración real con OpenAI API para chat
+- [ ] Reportes PDF exportables
+- [ ] Envío de recordatorios por email/SMS
+- [ ] App móvil (React Native)
 
 ## 📄 Licencia
 

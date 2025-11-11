@@ -58,6 +58,13 @@ export default function NuevaVentaPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [displayAmount, setDisplayAmount] = useState("");
+  const [showCustomTreatment, setShowCustomTreatment] = useState(false);
+  const [customTreatmentName, setCustomTreatmentName] = useState("");
+  const [createPaymentPlan, setCreatePaymentPlan] = useState(false);
+  const [paymentPlanData, setPaymentPlanData] = useState({
+    downPayment: "",
+    installments: "3",
+  });
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -101,14 +108,27 @@ export default function NuevaVentaPage() {
     const treatmentName = e.target.value;
     const treatment = TRATAMIENTOS_DENTALES.find((t) => t.nombre === treatmentName);
 
-    setFormData({
-      ...formData,
-      treatment: treatmentName,
-      amount: treatment?.precio.toString() || "",
-    });
+    // Si selecciona "Otros", mostrar input personalizado
+    if (treatmentName === "Otros") {
+      setShowCustomTreatment(true);
+      setFormData({
+        ...formData,
+        treatment: "",
+        amount: "",
+      });
+      setDisplayAmount("");
+      setCustomTreatmentName("");
+    } else {
+      setShowCustomTreatment(false);
+      setFormData({
+        ...formData,
+        treatment: treatmentName,
+        amount: treatment?.precio.toString() || "",
+      });
 
-    if (treatment) {
-      setDisplayAmount(formatCurrency(treatment.precio.toString()));
+      if (treatment) {
+        setDisplayAmount(formatCurrency(treatment.precio.toString()));
+      }
     }
   };
 
@@ -117,22 +137,41 @@ export default function NuevaVentaPage() {
     setLoading(true);
 
     try {
+      // Usar nombre personalizado si seleccionó "Otros"
+      const treatmentName = showCustomTreatment ? customTreatmentName : formData.treatment;
+
+      const body: any = {
+        ...formData,
+        treatment: treatmentName,
+        amount: parseFloat(formData.amount),
+      };
+
+      // Si hay plan de pago, agregarlo al body
+      if (createPaymentPlan && formData.status === "pendiente") {
+        body.paymentPlan = {
+          downPayment: parseFloat(paymentPlanData.downPayment) || 0,
+          installments: parseInt(paymentPlanData.installments),
+        };
+        body.paymentMethod = "plan_pagos";
+      }
+
       const response = await fetch("/api/ventas", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          amount: parseFloat(formData.amount),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         throw new Error("Error creating sale");
       }
 
-      toast.success("Venta creada exitosamente");
+      toast.success(
+        createPaymentPlan
+          ? "Venta y plan de pago creados exitosamente"
+          : "Venta creada exitosamente"
+      );
       router.push("/ventas");
       router.refresh();
     } catch (error) {
@@ -207,9 +246,9 @@ export default function NuevaVentaPage() {
                 <select
                   id="treatment"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  value={formData.treatment}
+                  value={showCustomTreatment ? "Otros" : formData.treatment}
                   onChange={handleTreatmentChange}
-                  required
+                  required={!showCustomTreatment}
                 >
                   <option value="">Seleccionar tratamiento</option>
                   {TRATAMIENTOS_DENTALES.map((tratamiento) => (
@@ -220,8 +259,22 @@ export default function NuevaVentaPage() {
                     </option>
                   ))}
                 </select>
+                {showCustomTreatment && (
+                  <div className="mt-2">
+                    <Input
+                      type="text"
+                      placeholder="Escribe el nombre del tratamiento"
+                      value={customTreatmentName}
+                      onChange={(e) => setCustomTreatmentName(e.target.value)}
+                      required
+                      className="w-full"
+                    />
+                  </div>
+                )}
                 <p className="text-xs text-gray-500">
-                  El precio se autocompleta según el tratamiento seleccionado
+                  {showCustomTreatment
+                    ? "Escribe el nombre del tratamiento personalizado"
+                    : "El precio se autocompleta según el tratamiento seleccionado"}
                 </p>
               </div>
 
@@ -269,9 +322,12 @@ export default function NuevaVentaPage() {
                   id="status"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                   value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, status: e.target.value });
+                    if (e.target.value !== "pendiente") {
+                      setCreatePaymentPlan(false);
+                    }
+                  }}
                 >
                   <option value="completada">Completada (Pagada y Realizada)</option>
                   <option value="pendiente">Pendiente (Pago o Tratamiento Pendiente)</option>
@@ -282,6 +338,135 @@ export default function NuevaVentaPage() {
                 </p>
               </div>
             </div>
+
+            {/* Plan de Pago - Solo si el estado es "pendiente" */}
+            {formData.status === "pendiente" && (
+              <div className="border-t pt-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="createPaymentPlan"
+                    checked={createPaymentPlan}
+                    onChange={(e) => setCreatePaymentPlan(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="createPaymentPlan" className="font-medium">
+                    Crear Plan de Pago (Cuotas)
+                  </Label>
+                </div>
+
+                {createPaymentPlan && (
+                  <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                    <h3 className="font-medium text-blue-900">
+                      Configuración del Plan de Pago
+                    </h3>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="downPayment">Cuota Inicial</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                            $
+                          </span>
+                          <Input
+                            id="downPayment"
+                            type="text"
+                            placeholder="0"
+                            value={paymentPlanData.downPayment}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              setPaymentPlanData({
+                                ...paymentPlanData,
+                                downPayment: value,
+                              });
+                            }}
+                            className="pl-7"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          Monto que paga hoy (puede ser $0)
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="installments">Número de Cuotas</Label>
+                        <select
+                          id="installments"
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                          value={paymentPlanData.installments}
+                          onChange={(e) =>
+                            setPaymentPlanData({
+                              ...paymentPlanData,
+                              installments: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="2">2 cuotas</option>
+                          <option value="3">3 cuotas</option>
+                          <option value="4">4 cuotas</option>
+                          <option value="5">5 cuotas</option>
+                          <option value="6">6 cuotas</option>
+                          <option value="9">9 cuotas</option>
+                          <option value="12">12 cuotas</option>
+                        </select>
+                        <p className="text-xs text-gray-600">
+                          Pagos mensuales después de la cuota inicial
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Preview del Plan de Pago */}
+                    {formData.amount && (
+                      <div className="bg-white p-4 rounded border border-blue-200">
+                        <h4 className="font-medium text-sm text-gray-700 mb-2">
+                          Resumen del Plan de Pago:
+                        </h4>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Total venta:</span>
+                            <span className="font-medium">
+                              ${parseInt(formData.amount).toLocaleString("es-CO")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Cuota inicial:</span>
+                            <span className="font-medium">
+                              $
+                              {(parseInt(paymentPlanData.downPayment) || 0).toLocaleString(
+                                "es-CO"
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-t pt-1">
+                            <span className="text-gray-600">Saldo a financiar:</span>
+                            <span className="font-medium">
+                              $
+                              {(
+                                parseInt(formData.amount) -
+                                (parseInt(paymentPlanData.downPayment) || 0)
+                              ).toLocaleString("es-CO")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-blue-700 font-semibold border-t pt-1">
+                            <span>
+                              Valor de cada cuota ({paymentPlanData.installments}x):
+                            </span>
+                            <span>
+                              $
+                              {Math.round(
+                                (parseInt(formData.amount) -
+                                  (parseInt(paymentPlanData.downPayment) || 0)) /
+                                  parseInt(paymentPlanData.installments)
+                              ).toLocaleString("es-CO")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-4 justify-end">
               <Link href="/ventas">

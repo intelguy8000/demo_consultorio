@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -45,26 +46,30 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">CR Dental Studio</CardTitle>
-          <CardDescription className="text-center">
-            Ingresa tus credenciales para acceder al sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen flex items-center justify-center bg-warm-gradient p-4">
+      <Card className="w-full max-w-md card-floating">
+        <div className="p-8 space-y-6">
+          {/* Logo y Tagline */}
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
+              CR Dental Studio
+            </h1>
+            <p className="text-sm text-gray-500">Sonrisas que llegan al alma</p>
+          </div>
+
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="usuario@crdentalstudio.com"
+                placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -77,24 +82,47 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="rounded-xl"
               />
             </div>
+
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            <Button
+              type="submit"
+              className="w-full bg-brand-gradient hover:opacity-90 transition-opacity rounded-xl"
+              disabled={loading}
+            >
               {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
-          <div className="mt-6 text-xs text-gray-500 space-y-1">
-            <p className="font-semibold">Credenciales de prueba:</p>
-            <p>Admin: dra.catalina@crdentalstudio.com / Admin123!</p>
-            <p>Asistente: maria@crdentalstudio.com / Asistente123!</p>
-            <p>Readonly: juan@crdentalstudio.com / Lectura123!</p>
+
+          {/* Forgot Password */}
+          <div className="text-center">
+            <a
+              href="#"
+              className="text-xs text-gray-500 hover:text-teal-600 transition-colors"
+              onClick={(e) => e.preventDefault()}
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
           </div>
-        </CardContent>
+
+          {/* Test Credentials */}
+          <div className="pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-500 font-semibold mb-2">Credenciales de prueba:</p>
+            <div className="space-y-1 text-xs text-gray-500">
+              <p>Admin: dra.catalina@crdentalstudio.com / Admin123!</p>
+              <p>Asistente: maria@crdentalstudio.com / Asistente123!</p>
+              <p>Readonly: juan@crdentalstudio.com / Lectura123!</p>
+            </div>
+          </div>
+        </div>
       </Card>
     </div>
   );

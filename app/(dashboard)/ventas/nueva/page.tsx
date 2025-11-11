@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { TRATAMIENTOS_DENTALES, CATEGORIAS_TRATAMIENTOS } from "@/lib/constants/treatments";
 
 interface Patient {
   id: string;
@@ -22,35 +23,6 @@ interface InventoryItem {
   currentStock: number;
   unit: string;
 }
-
-// Diccionario de tratamientos comunes con precios sugeridos
-const TRATAMIENTOS_DENTALES = [
-  { nombre: "Consulta General", precio: 50000 },
-  { nombre: "Limpieza Dental (Profilaxis)", precio: 80000 },
-  { nombre: "Resina Dental (1 superficie)", precio: 150000 },
-  { nombre: "Resina Dental (2 superficies)", precio: 200000 },
-  { nombre: "Resina Dental (3 superficies)", precio: 250000 },
-  { nombre: "Extracción Simple", precio: 120000 },
-  { nombre: "Extracción Compleja", precio: 180000 },
-  { nombre: "Extracción Quirúrgica", precio: 250000 },
-  { nombre: "Blanqueamiento Dental", precio: 450000 },
-  { nombre: "Endodoncia (Conducto)", precio: 380000 },
-  { nombre: "Corona Porcelana", precio: 650000 },
-  { nombre: "Corona Metal-Porcelana", precio: 550000 },
-  { nombre: "Ortodoncia Mensual", precio: 200000 },
-  { nombre: "Ortodoncia Instalación", precio: 800000 },
-  { nombre: "Implante Dental", precio: 1500000 },
-  { nombre: "Urgencia Odontológica", precio: 80000 },
-  { nombre: "Radiografía Periapical", precio: 25000 },
-  { nombre: "Radiografía Panorámica", precio: 60000 },
-  { nombre: "Detartraje (Limpieza Profunda)", precio: 120000 },
-  { nombre: "Sellante de Fosas", precio: 40000 },
-  { nombre: "Aplicación de Flúor", precio: 30000 },
-  { nombre: "Puente Fijo (3 piezas)", precio: 1200000 },
-  { nombre: "Prótesis Removible Parcial", precio: 800000 },
-  { nombre: "Prótesis Removible Total", precio: 1000000 },
-  { nombre: "Otros", precio: 0 },
-];
 
 export default function NuevaVentaPage() {
   const router = useRouter();

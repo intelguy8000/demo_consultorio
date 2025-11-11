@@ -220,14 +220,20 @@ async function main() {
 
   // Crear ventas del último mes
   const treatments = [
-    { name: "Limpieza Dental", amount: 80000 },
-    { name: "Resina Dental", amount: 150000 },
+    { name: "Consulta General", amount: 50000 },
+    { name: "Limpieza Dental (Profilaxis)", amount: 80000 },
+    { name: "Resina Dental (1 superficie)", amount: 150000 },
     { name: "Extracción Simple", amount: 120000 },
     { name: "Blanqueamiento Dental", amount: 450000 },
     { name: "Endodoncia", amount: 380000 },
     { name: "Corona Porcelana", amount: 650000 },
-    { name: "Consulta General", amount: 50000 },
-    { name: "Ortodoncia Mensual", amount: 200000 },
+    { name: "Ortodoncia", amount: 200000 },
+    { name: "Implantes Dentales", amount: 2000000 },
+    { name: "Diseño de Sonrisa", amount: 3500000 },
+    { name: "Lentes Cerámicos", amount: 2500000 },
+    { name: "Bichectomía", amount: 1200000 },
+    { name: "Periodoncia", amount: 150000 },
+    { name: "Rehabilitación Oral", amount: 1500000 },
   ];
 
   const paymentMethods = ["efectivo", "tarjeta", "transferencia", "nequi"];
@@ -304,28 +310,28 @@ async function main() {
   const paymentPlansData = [
     {
       patient: patients[0],
-      treatment: "Ortodoncia Completa",
-      totalAmount: 3000000,
-      downPayment: 0,
+      treatment: "Diseño de Sonrisa",
+      totalAmount: 3500000,
+      downPayment: 500000,
       installments: 6,
       installmentAmount: 500000,
       startDate: new Date(),
     },
     {
       patient: patients[1],
-      treatment: "Implante Dental + Corona",
-      totalAmount: 2500000,
-      downPayment: 500000,
+      treatment: "Implantes Dentales + Corona",
+      totalAmount: 2650000,
+      downPayment: 650000,
       installments: 4,
       installmentAmount: 500000,
       startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Started 30 days ago
     },
     {
       patient: patients[2],
-      treatment: "Blanqueamiento + Carillas",
-      totalAmount: 1800000,
-      downPayment: 300000,
-      installments: 3,
+      treatment: "Lentes Cerámicos",
+      totalAmount: 2500000,
+      downPayment: 500000,
+      installments: 4,
       installmentAmount: 500000,
       startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // Started 60 days ago
     },

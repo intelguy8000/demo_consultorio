@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CR Dental Studio - Sistema de Gestión
 
-## Getting Started
+Sistema de gestión integral para el consultorio odontológico CR Dental Studio de Medellín, Colombia.
 
-First, run the development server:
+## 🚀 Stack Tecnológico
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Framework**: Next.js 14 (App Router)
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Base de Datos**: SQLite con Prisma ORM
+- **Autenticación**: NextAuth.js v5
+- **Formularios**: React Hook Form + Zod
+
+## 📋 Características
+
+- ✅ Sistema de autenticación con roles (admin, asistente, readonly)
+- ✅ Dashboard con vista general del consultorio
+- ✅ Sidebar de navegación con múltiples módulos
+- ✅ Header con perfil de usuario y menú desplegable
+- 🔄 Módulos en desarrollo: Ventas, Compras, Inventario, Clientes, P&G, Integraciones, Usuarios, Configuración
+
+## 🛠️ Setup del Proyecto
+
+### Prerrequisitos
+
+- Node.js 18+ y npm
+
+### Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/intelguy8000/odontologia.git
+   cd cr-dental-studio
+   ```
+
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno**
+
+   El archivo `.env` ya está creado con:
+   ```env
+   DATABASE_URL="file:./dev.db"
+   NEXTAUTH_SECRET="cambiar-en-produccion"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
+
+4. **Generar base de datos y ejecutar seed**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   npm run seed
+   ```
+
+5. **Iniciar servidor de desarrollo**
+   ```bash
+   npm run dev
+   ```
+
+6. **Abrir en navegador**
+
+   Navega a [http://localhost:3000](http://localhost:3000)
+
+## 🔑 Credenciales de Acceso
+
+### Administrador
+- **Email**: dra.catalina@crdentalstudio.com
+- **Password**: Admin123!
+
+### Asistente
+- **Email**: maria@crdentalstudio.com
+- **Password**: Asistente123!
+
+### Solo Lectura
+- **Email**: juan@crdentalstudio.com
+- **Password**: Lectura123!
+
+## 📁 Estructura del Proyecto
+
+```
+cr-dental-studio/
+├── app/                        # App Router de Next.js
+│   ├── (dashboard)/           # Rutas protegidas del dashboard
+│   │   ├── layout.tsx         # Layout con Sidebar y Header
+│   │   └── dashboard/         # Página principal del dashboard
+│   ├── api/                   # API routes
+│   │   └── auth/              # NextAuth routes
+│   └── login/                 # Página de login
+├── components/                # Componentes reutilizables
+│   ├── layouts/              # Layouts (Sidebar, Header)
+│   └── ui/                   # Componentes de shadcn/ui
+├── lib/                       # Utilidades y configuraciones
+│   └── auth.ts               # Configuración de NextAuth
+├── prisma/                    # Schema y seed de Prisma
+│   ├── schema.prisma         # Modelos de base de datos
+│   └── seed.ts               # Datos iniciales
+├── types/                     # Definiciones de tipos TypeScript
+│   └── next-auth.d.ts        # Tipos extendidos de NextAuth
+└── middleware.ts             # Middleware de protección de rutas
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🗄️ Modelos de Base de Datos
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### User
+- id, email, password, name, role, status, createdAt, updatedAt
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Config
+- Información del consultorio (singleton)
 
-## Learn More
+### Integration
+- Integraciones con servicios externos (Alegra, OpenAI)
 
-To learn more about Next.js, take a look at the following resources:
+## 🔐 Roles y Permisos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **admin**: Acceso completo a todos los módulos
+- **asistente**: Acceso a operaciones del día a día
+- **readonly**: Solo lectura, sin permisos de edición
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧪 Scripts Disponibles
 
-## Deploy on Vercel
+```bash
+npm run dev      # Iniciar servidor de desarrollo
+npm run build    # Construir para producción
+npm run start    # Iniciar servidor de producción
+npm run lint     # Ejecutar linter
+npm run seed     # Ejecutar seed de base de datos
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📝 Próximos Pasos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Implementar módulo de Ventas
+- [ ] Implementar módulo de Compras & Gastos
+- [ ] Implementar módulo de Inventario
+- [ ] Implementar módulo de Clientes
+- [ ] Implementar módulo de P&G (Pérdidas y Ganancias)
+- [ ] Configurar integraciones (Alegra, OpenAI)
+- [ ] Implementar gestión de usuarios
+- [ ] Implementar configuración del consultorio
+
+## 📄 Licencia
+
+Proyecto privado para CR Dental Studio.
+
+---
+
+**Desarrollado para**: Dra. Catalina Rodríguez - CR Dental Studio, Medellín

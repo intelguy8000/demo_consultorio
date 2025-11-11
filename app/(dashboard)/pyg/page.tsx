@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 interface PygData {
   revenue: number;
@@ -18,7 +18,6 @@ interface PygData {
 
 export default function PygPage() {
   const [pyg, setPyg] = useState<PygData | null>(null);
-  const [revenueVsExpenses, setRevenueVsExpenses] = useState<any[]>([]);
   const [expensesByCategory, setExpensesByCategory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,12 +29,10 @@ export default function PygPage() {
 
     Promise.all([
       fetch(`/api/pyg?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`).then((r) => r.json()),
-      fetch(`/api/pyg?type=revenue-vs-expenses&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`).then((r) => r.json()),
       fetch(`/api/pyg?type=expenses-by-category&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`).then((r) => r.json()),
     ])
-      .then(([pygData, revenueData, expensesData]) => {
+      .then(([pygData, expensesData]) => {
         setPyg(pygData);
-        setRevenueVsExpenses(revenueData);
         setExpensesByCategory(expensesData);
       })
       .finally(() => setLoading(false));
@@ -117,62 +114,36 @@ export default function PygPage() {
         </CardContent>
       </Card>
 
-      {/* Gráficos */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Ingresos vs Gastos */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ingresos vs Gastos</CardTitle>
-            <CardDescription>Comparativo del mes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueVsExpenses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value: number) => `$${value.toLocaleString("es-CO")}`}
-                  />
-                  <Bar dataKey="value" fill="#3B82F6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Distribución de Gastos */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribución de Gastos</CardTitle>
-            <CardDescription>Por categoría</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={expensesByCategory}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(entry: any) => `${entry.category} (${(entry.percent * 100).toFixed(0)}%)`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="amount"
-                  >
-                    {expensesByCategory.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => `$${value.toLocaleString("es-CO")}`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Distribución de Gastos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribución de Gastos</CardTitle>
+          <CardDescription>Por categoría</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={expensesByCategory}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry: any) => `${entry.category} (${(entry.percent * 100).toFixed(0)}%)`}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  dataKey="amount"
+                >
+                  {expensesByCategory.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => `$${value.toLocaleString("es-CO")}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

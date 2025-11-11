@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
 import { Toaster } from "@/components/ui/sonner";
-import { AIChat } from "@/components/chat/ai-chat";
 
 export default async function DashboardLayout({
   children,
@@ -24,7 +23,6 @@ export default async function DashboardLayout({
         <main className="flex-1 p-8 max-w-[1600px] mx-auto w-full">{children}</main>
       </div>
       <Toaster />
-      <AIChat />
     </div>
   );
 }

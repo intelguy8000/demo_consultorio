@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       data: {
         document: body.document,
         fullName: body.fullName,
+        gender: body.gender || null,
         birthDate: body.birthDate ? new Date(body.birthDate) : null,
         phone: body.phone,
         email: body.email || null,

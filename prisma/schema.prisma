@@ -72,6 +72,7 @@ model Patient {
   id           String        @id @default(cuid())
   document     String        @unique
   fullName     String
+  gender       String?       // "M" o "F"
   birthDate    DateTime?
   phone        String
   email        String?

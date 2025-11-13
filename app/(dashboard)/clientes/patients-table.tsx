@@ -30,6 +30,7 @@ export function PatientsTable() {
   const [formData, setFormData] = useState({
     document: "",
     fullName: "",
+    gender: "",
     birthDate: "",
     phone: "",
     email: "",
@@ -60,6 +61,7 @@ export function PatientsTable() {
     setFormData({
       document: "",
       fullName: "",
+      gender: "",
       birthDate: "",
       phone: "",
       email: "",
@@ -105,6 +107,7 @@ export function PatientsTable() {
     setFormData({
       document: patient.document,
       fullName: patient.fullName,
+      gender: (patient as any).gender || "",
       birthDate: patient.birthDate || "",
       phone: patient.phone,
       email: patient.email || "",
@@ -200,7 +203,7 @@ export function PatientsTable() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="document">
                     Documento <span className="text-red-500">*</span>
@@ -231,6 +234,22 @@ export function PatientsTable() {
                     }
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Género</Label>
+                  <select
+                    id="gender"
+                    value={formData.gender}
+                    onChange={(e) =>
+                      setFormData({ ...formData, gender: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">

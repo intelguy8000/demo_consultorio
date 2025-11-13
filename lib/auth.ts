@@ -19,16 +19,8 @@ const DEFAULT_USER = {
   role: "admin",
 };
 
-// Función que simula una sesión activa permanente
-export async function auth() {
-  return {
-    user: DEFAULT_USER,
-    expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 año
-  };
-}
-
-// Mantener NextAuth para compatibilidad pero con usuario automático
-export const { handlers, signIn, signOut } = NextAuth({
+// Exportar NextAuth con configuración
+const nextAuthConfig = NextAuth({
   providers: [
     Credentials({
       credentials: {
@@ -97,3 +89,14 @@ export const { handlers, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
 });
+
+// Exportar handlers y funciones de NextAuth
+export const { handlers, signIn, signOut } = nextAuthConfig;
+
+// Función auth personalizada que siempre retorna sesión activa
+export async function auth() {
+  return {
+    user: DEFAULT_USER,
+    expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 año
+  };
+}

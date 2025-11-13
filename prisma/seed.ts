@@ -85,7 +85,7 @@ async function main() {
       name: "Alegra",
       type: "alegra",
       status: "active",
-      lastSync: new Date(),
+      lastSync: new Date(Date.now() - 20 * 60 * 1000), // Hace 20 minutos
     },
   });
 

@@ -85,18 +85,20 @@ model Patient {
 }
 
 model Sale {
-  id            String   @id @default(cuid())
-  date          DateTime
-  patientId     String
-  patient       Patient  @relation(fields: [patientId], references: [id])
-  treatment     String
-  amount        Float
-  paymentMethod String
-  status        String
-  itemsUsed     SaleInventoryItem[]
-  paymentPlan   PaymentPlan?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String   @id @default(cuid())
+  date             DateTime
+  patientId        String
+  patient          Patient  @relation(fields: [patientId], references: [id])
+  treatment        String
+  amount           Float
+  paymentMethod    String
+  status           String
+  source           String   @default("manual") // "alegra" o "manual"
+  alegraInvoiceId  String?  // ID de factura en Alegra (si aplica)
+  itemsUsed        SaleInventoryItem[]
+  paymentPlan      PaymentPlan?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model PaymentPlan {

@@ -21,6 +21,7 @@ export default async function VentasPage() {
   const sales = await getSales();
   const alegraIntegration = await getAlegraLastSync();
 
+  // Estadísticas generales
   const totalAmount = sales.reduce((sum, sale) => {
     if (sale.status === "completada") {
       return sum + sale.amount;
@@ -29,6 +30,18 @@ export default async function VentasPage() {
   }, 0);
 
   const completedSales = sales.filter((sale) => sale.status === "completada").length;
+
+  // Estadísticas por origen
+  const alegraSales = sales.filter((sale) => sale.source === "alegra");
+  const manualSales = sales.filter((sale) => sale.source === "manual");
+
+  const alegraAmount = alegraSales
+    .filter((sale) => sale.status === "completada")
+    .reduce((sum, sale) => sum + sale.amount, 0);
+
+  const manualAmount = manualSales
+    .filter((sale) => sale.status === "completada")
+    .reduce((sum, sale) => sum + sale.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -81,13 +94,15 @@ export default async function VentasPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-700">
-              Ventas Totales
+              Ventas Alegra
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sales.length}</div>
+            <div className="text-2xl font-bold">
+              ${alegraAmount.toLocaleString("es-CO")}
+            </div>
             <p className="text-xs text-gray-500 mt-1">
-              {sales.filter((s) => s.status === "pendiente").length} pendientes
+              {alegraSales.filter((s) => s.status === "completada").length} completadas
             </p>
           </CardContent>
         </Card>
@@ -95,16 +110,16 @@ export default async function VentasPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-700">
-              Ticket Promedio
+              Ventas Manuales
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${completedSales > 0
-                ? Math.round(totalAmount / completedSales).toLocaleString("es-CO")
-                : 0}
+              ${manualAmount.toLocaleString("es-CO")}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Por venta completada</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {manualSales.filter((s) => s.status === "completada").length} completadas
+            </p>
           </CardContent>
         </Card>
       </div>

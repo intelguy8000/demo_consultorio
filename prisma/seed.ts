@@ -250,6 +250,10 @@ async function main() {
     const daysAgo = Math.floor(Math.random() * 30);
     const saleDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
 
+    // Determinar origen: efectivo = manual, otros = alegra
+    const source = randomPayment === "efectivo" ? "manual" : "alegra";
+    const alegraInvoiceId = source === "alegra" ? `ALG-${Date.now()}-${i}` : null;
+
     const sale = await prisma.sale.create({
       data: {
         date: saleDate,
@@ -258,6 +262,8 @@ async function main() {
         amount: randomTreatment.amount,
         paymentMethod: randomPayment,
         status: randomStatus,
+        source: source,
+        alegraInvoiceId: alegraInvoiceId,
       },
     });
 
@@ -350,6 +356,8 @@ async function main() {
         amount: planData.totalAmount,
         paymentMethod: "plan_pagos",
         status: "pendiente",
+        source: "alegra", // Los planes de pago se facturan en Alegra
+        alegraInvoiceId: `ALG-PLAN-${Date.now()}-${i}`,
       },
     });
 

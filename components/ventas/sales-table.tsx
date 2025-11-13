@@ -18,6 +18,8 @@ interface Sale {
   amount: number;
   paymentMethod: string;
   status: string;
+  source?: string;
+  alegraInvoiceId?: string | null;
 }
 
 interface SalesTableProps {
@@ -25,6 +27,7 @@ interface SalesTableProps {
 }
 
 export function SalesTable({ sales }: SalesTableProps) {
+  const [sourceFilter, setSourceFilter] = useState<"todas" | "alegra" | "manual">("todas");
   const [filters, setFilters] = useState({
     fecha: "",
     paciente: "",
@@ -47,6 +50,10 @@ export function SalesTable({ sales }: SalesTableProps) {
 
   const filteredSales = useMemo(() => {
     return sales.filter((sale) => {
+      // Filtro por origen
+      if (sourceFilter === "alegra" && sale.source !== "alegra") return false;
+      if (sourceFilter === "manual" && sale.source !== "manual") return false;
+
       const fecha = format(new Date(sale.date), "dd MMM yyyy", { locale: es }).toLowerCase();
       const paciente = sale.patient.fullName.toLowerCase();
       const tratamiento = sale.treatment.toLowerCase();
@@ -63,7 +70,7 @@ export function SalesTable({ sales }: SalesTableProps) {
         estado.includes(filters.estado.toLowerCase())
       );
     });
-  }, [sales, filters]);
+  }, [sales, filters, sourceFilter]);
 
   const exportToExcel = () => {
     const dataToExport = filteredSales.map((sale) => ({
@@ -126,18 +133,61 @@ export function SalesTable({ sales }: SalesTableProps) {
     );
   };
 
+  const getSourceBadge = (source?: string) => {
+    if (source === "alegra") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          Alegra
+        </span>
+      );
+    }
+    return (
+      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        Manual
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      {/* Export Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button onClick={exportToCSV} variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Exportar CSV
-        </Button>
-        <Button onClick={exportToExcel} variant="outline" size="sm">
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Exportar Excel
-        </Button>
+      {/* Filtros y Export Buttons */}
+      <div className="flex items-center justify-between">
+        {/* Filtro de Origen */}
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setSourceFilter("todas")}
+            variant={sourceFilter === "todas" ? "default" : "outline"}
+            size="sm"
+          >
+            Todas
+          </Button>
+          <Button
+            onClick={() => setSourceFilter("alegra")}
+            variant={sourceFilter === "alegra" ? "default" : "outline"}
+            size="sm"
+          >
+            Solo Alegra
+          </Button>
+          <Button
+            onClick={() => setSourceFilter("manual")}
+            variant={sourceFilter === "manual" ? "default" : "outline"}
+            size="sm"
+          >
+            Solo Manuales
+          </Button>
+        </div>
+
+        {/* Export Buttons */}
+        <div className="flex gap-2">
+          <Button onClick={exportToCSV} variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
+          <Button onClick={exportToExcel} variant="outline" size="sm">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -158,6 +208,9 @@ export function SalesTable({ sales }: SalesTableProps) {
               </th>
               <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                 Método de Pago
+              </th>
+              <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                Origen
               </th>
               <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
                 Estado
@@ -206,6 +259,9 @@ export function SalesTable({ sales }: SalesTableProps) {
                 />
               </th>
               <th className="py-2 px-4">
+                {/* Sin filtro para Origen, se usa el filtro superior */}
+              </th>
+              <th className="py-2 px-4">
                 <Input
                   placeholder="Filtrar..."
                   value={filters.estado}
@@ -232,6 +288,9 @@ export function SalesTable({ sales }: SalesTableProps) {
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-600">
                   {getPaymentMethodLabel(sale.paymentMethod)}
+                </td>
+                <td className="py-3 px-4 text-center">
+                  {getSourceBadge(sale.source)}
                 </td>
                 <td className="py-3 px-4 text-center">
                   {getStatusBadge(sale.status)}

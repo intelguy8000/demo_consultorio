@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { PurchasesTable } from "@/components/compras/purchases-table";
 import { ExpensesTable } from "@/components/compras/expenses-table";
 
@@ -51,6 +54,23 @@ export default function ComprasPage() {
           <p className="text-gray-500 mt-1">
             Gestiona tus compras a proveedores y gastos operacionales
           </p>
+        </div>
+        <div>
+          {activeTab === "compras" ? (
+            <Link href="/compras/nueva">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva Compra
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/compras/nuevo-gasto">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Gasto
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import {
   UserCog,
   Settings,
   Receipt,
+  Truck,
 } from "lucide-react";
 
 const menuItems = [
@@ -20,6 +21,7 @@ const menuItems = [
   { icon: ShoppingCart, label: "Ventas", href: "/ventas" },
   { icon: Receipt, label: "Planes de Pago", href: "/cuentas-por-cobrar" },
   { icon: ShoppingBag, label: "Compras & Gastos", href: "/compras" },
+  { icon: Truck, label: "Proveedores", href: "/proveedores" },
   { icon: Package, label: "Inventario", href: "/inventario" },
   { icon: Users, label: "Clientes", href: "/clientes" },
   { icon: TrendingUp, label: "P&G", href: "/pyg" },

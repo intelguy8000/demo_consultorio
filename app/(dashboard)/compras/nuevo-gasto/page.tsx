@@ -41,6 +41,7 @@ export default function NuevoGastoPage() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     category: "",
+    customCategory: "",
     description: "",
     amount: "",
     frequency: "unico",
@@ -66,12 +67,14 @@ export default function NuevoGastoPage() {
     setLoading(true);
 
     try {
+      const finalCategory = formData.category === "Otros" ? formData.customCategory : formData.category;
+
       const response = await fetch("/api/gastos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: new Date(formData.date),
-          category: formData.category,
+          category: finalCategory,
           description: formData.description,
           amount: parseFloat(formData.amount),
           frequency: formData.frequency,
@@ -137,7 +140,7 @@ export default function NuevoGastoPage() {
                 <select
                   id="category"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, customCategory: "" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 >
@@ -150,6 +153,23 @@ export default function NuevoGastoPage() {
                 </select>
               </div>
             </div>
+
+            {/* Campo personalizado para "Otros" */}
+            {formData.category === "Otros" && (
+              <div className="space-y-2">
+                <Label htmlFor="customCategory">
+                  Especificar Categoría <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="customCategory"
+                  type="text"
+                  placeholder="Ej: Equipamiento de Oficina"
+                  value={formData.customCategory}
+                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                  required
+                />
+              </div>
+            )}
 
             {/* Descripción */}
             <div className="space-y-2">

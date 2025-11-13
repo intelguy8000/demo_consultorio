@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { TRATAMIENTOS_DENTALES, CATEGORIAS_TRATAMIENTOS } from "@/lib/constants/treatments";
@@ -194,7 +194,15 @@ export default function NuevaVentaPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="patient">Paciente</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="patient">Paciente</Label>
+                  <Link href="/clientes" target="_blank">
+                    <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                      <Plus className="mr-1 h-3 w-3" />
+                      Nuevo Paciente
+                    </Button>
+                  </Link>
+                </div>
                 <select
                   id="patient"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"

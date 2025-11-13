@@ -56,6 +56,7 @@ export default function NuevaCompraPage() {
     supplierId: "",
     invoiceNumber: "",
     category: "",
+    customCategory: "",
   });
 
   useEffect(() => {
@@ -130,6 +131,8 @@ export default function NuevaCompraPage() {
     }
 
     try {
+      const finalCategory = formData.category === "Otros" ? formData.customCategory : formData.category;
+
       const response = await fetch("/api/compras", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -137,7 +140,7 @@ export default function NuevaCompraPage() {
           date: new Date(formData.date),
           supplierId: formData.supplierId,
           invoiceNumber: formData.invoiceNumber,
-          category: formData.category,
+          category: finalCategory,
           totalAmount: getGrandTotal(),
           items: items.map((item) => ({
             productName: item.productName,
@@ -203,7 +206,15 @@ export default function NuevaCompraPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="supplier">Proveedor</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="supplier">Proveedor</Label>
+                  <Link href="/proveedores" target="_blank">
+                    <Button type="button" variant="ghost" size="sm" className="h-7 text-xs">
+                      <Plus className="mr-1 h-3 w-3" />
+                      Nuevo Proveedor
+                    </Button>
+                  </Link>
+                </div>
                 <select
                   id="supplier"
                   value={formData.supplierId}
@@ -239,7 +250,7 @@ export default function NuevaCompraPage() {
                 <select
                   id="category"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, customCategory: "" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 >
@@ -252,6 +263,23 @@ export default function NuevaCompraPage() {
                 </select>
               </div>
             </div>
+
+            {/* Campo personalizado para "Otros" */}
+            {formData.category === "Otros" && (
+              <div className="space-y-2">
+                <Label htmlFor="customCategory">
+                  Especificar Categoría <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="customCategory"
+                  type="text"
+                  placeholder="Ej: Material de Ortodoncia"
+                  value={formData.customCategory}
+                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                  required
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

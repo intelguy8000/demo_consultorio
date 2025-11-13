@@ -11,7 +11,24 @@ const signInSchema = z.object({
   password: z.string().min(6),
 });
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// Usuario predeterminado (Dra. Catalina - Admin)
+const DEFAULT_USER = {
+  id: "admin-default",
+  email: "dra.catalina@crdentalstudio.com",
+  name: "Dra. Catalina Rodríguez",
+  role: "admin",
+};
+
+// Función que simula una sesión activa permanente
+export async function auth() {
+  return {
+    user: DEFAULT_USER,
+    expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 año
+  };
+}
+
+// Mantener NextAuth para compatibilidad pero con usuario automático
+export const { handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {

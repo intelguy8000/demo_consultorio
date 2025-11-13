@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 
-export default async function HomePage() {
-  const session = await auth();
-
-  if (session?.user) {
-    redirect("/dashboard");
-  } else {
-    redirect("/login");
-  }
+export default function HomePage() {
+  // Siempre redirigir al dashboard (siempre estamos logueados como Dra. Catalina)
+  redirect("/dashboard");
 }

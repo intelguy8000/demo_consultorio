@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
@@ -10,11 +9,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Siempre tenemos sesión activa (Dra. Catalina)
   const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
 
   return (
     <div className="flex min-h-screen bg-warm-gradient">

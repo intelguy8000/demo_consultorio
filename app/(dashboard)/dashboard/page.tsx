@@ -54,7 +54,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 mt-1">
-          Vista general del consultorio CR Dental Studio
+          Vista general de tu consultorio
         </p>
       </div>
 

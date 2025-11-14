@@ -11,11 +11,11 @@ const signInSchema = z.object({
   password: z.string().min(6),
 });
 
-// Usuario predeterminado (Dra. Catalina - Admin)
+// Usuario predeterminado (Demo)
 const DEFAULT_USER = {
   id: "admin-default",
-  email: "dra.catalina@crdentalstudio.com",
-  name: "Dra. Catalina Rodríguez",
+  email: "admin@demo.com",
+  name: "Usuario Administrador",
   role: "admin",
 };
 
